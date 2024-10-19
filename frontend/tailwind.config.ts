@@ -14,7 +14,7 @@ const config: Config = {
   			foreground: 'var(--foreground)',
   			WhiteBg: '#79aced',
         ThemeBg: '#e0f2fe',
-        CircleColor: '#505efa'
+        CircleColor: '#3b82f6'
   		},
   		borderRadius: {
   			lg: 'var(--radius)',

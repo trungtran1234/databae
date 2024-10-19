@@ -48,7 +48,7 @@ export default function DatabaseVisualizer() {
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="text-3xl font-bold text-blue-800 mb-8 relative z-10"
+                className="text-3xl font-bold text-blue-800 mb-2 relative z-10"
             >
                 Databae.
             </motion.h1>
@@ -56,15 +56,12 @@ export default function DatabaseVisualizer() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5 }}
-                className="w-full max-w-3xl relative z-10"
+                className="w-full max-w-3xl relative z-0"
             >
                 <Card className="shadow-lg overflow-hidden">
-                    <CardHeader>
-                        <CardTitle className="text-2xl font-bold text-blue-600">Visualization Area</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6 h-64">
+                    <CardContent className="p-6 h-96">
                         <div className="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
-
+                            response will appear here
                         </div>
                     </CardContent>
                 </Card>
@@ -73,7 +70,7 @@ export default function DatabaseVisualizer() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="w-full max-w-3xl mt-8 relative z-10"
+                className="w-full max-w-3xl mt-2 relative z-10"
             >
                 <h2 className="text-xl font-semibold text-blue-800 mb-2">How can I help you?</h2>
                 <Card className="shadow-md overflow-hidden">
@@ -90,7 +87,7 @@ export default function DatabaseVisualizer() {
                                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center"
                             >
                                 <Send className="w-4 h-4 mr-2" />
-                                Send
+                                Run Query
                             </Button>
                         </motion.div>
                     </CardContent>
