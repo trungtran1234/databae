@@ -8,7 +8,7 @@ import os
 def create_connection():
     connection = None
 
-    if not os.path.exists('db_credentials.json'):
+    if not os.path.abspath('db_credentials.json'):
         print("no db credentials found")
         return None
     
