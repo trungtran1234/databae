@@ -78,6 +78,7 @@ async def query_handler(ctx: Context, sender: str, message: Response):
     schema = message.schema
 
     response = check_query(sqlquery, schema, userquery)
+
     ctx.logger.info(f"Response: {response}")
 
     if response == "QUERY CHECKER PASSED":
@@ -106,6 +107,7 @@ async def startup(ctx: Context):
 async def query_execution(ctx: Context, sender: str, message: Response):
     response = execute_query(message.query)
     ctx.logger.info(f"Query executed: {response}")
+
 
 
 # run all the agents at the same time basically :3 
