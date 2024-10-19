@@ -64,7 +64,6 @@ def run_general(query, schema):
             {"role": "user", "content": f"User query:{query}\nSchema: {schema}"}
         ]
     )
-    print('response general', response.choices[0].message.content)
     return response.choices[0].message.content
 
 # generate a db query based on the user input and schemas
@@ -83,36 +82,15 @@ def create_db_query(query, schema):
     
     raw_sql_query = response.choices[0].message.content.strip()
 
-    print('raw', raw_sql_query)
     
     # Use regex to extract the SQL query from within ```sql ... ```
     match = re.search(r"```sql(.*?)```", raw_sql_query, re.DOTALL)
     if match:
         sql_query = match.group(1).strip()  
-        print('query righth er', sql_query)
     else:
-        print('hola')
         sql_query = raw_sql_query.strip()
-    
-    # # Execute the extracted SQL query
-    # conn = create_connection()
-    # if conn:
-    #     try:
-    #         cursor = conn.cursor()
-    #         cursor.execute(sql_query)
-    #         results = cursor.fetchall()
-            
-    #         # Check if results are empty
-    #         if results:
-    #             return json.dumps(results, cls=CustomJSONEncoder)
-    #         else:
-    #             return json.dumps({"message": "Query executed successfully but returned no results."})
-    #     except Exception as e:
-    #         return json.dumps({"error": f"SQL execution failed: {str(e)}"})
 
-    # else:
-    #     return json.dumps({"error": "Database connection failed"})
-    return { raw_sql_query, schema }
+    return raw_sql_query
 
 # basically a helper function that creates a db query if an SQL query is needed; otherwise, it will just make
 # a respones based on the user's query and schema

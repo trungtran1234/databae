@@ -5,15 +5,13 @@ from uagents.query import query
 from uagents.envelope import Envelope
 import json
 from db_tools import check_and_add_db_credentials
+import agent_class
 
 # Agent address
 AGENT_ADDRESS = "agent1qtafwkkm26h5gdkkz39pd5nnt604q96xh4hperynl085cwzquh0uyunffjz"
 
 app = FastAPI()
 
-# Define request model
-class UserRequest(Model):
-    message: str
 
 class DbBodyModel(BaseModel):
     host_name: str
@@ -21,6 +19,7 @@ class DbBodyModel(BaseModel):
     password: str
     port: int
     db_name: str
+
 
 async def agent_query(req):
     response = await query(destination=AGENT_ADDRESS, message=req, timeout=5)
@@ -36,7 +35,7 @@ def read_root():
 @app.post("/endpoint")
 async def make_agent_call(req: Request):
     try:
-        model = UserRequest.parse_obj(await req.json())
+        model = agent_class.Request.parse_obj(await req.json())
         res = await agent_query(model)
         return {"status": "successful", "agent_response": res}
     except Exception as e:

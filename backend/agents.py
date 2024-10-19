@@ -2,17 +2,11 @@ from uagents import Agent, Context, Model, Bureau
 from dotenv import load_dotenv
 from db_tools import create_connection, get_all_schemas
 from agent_funcs import process_query, check_query
+from agent_class import Request, Response
 
 load_dotenv()
 
-class Request(Model):
-    query: str
 
-class Response(Model):
-    text: str
-    query: str = None
-    sqlschema: str = None
-    
 
 query_generator_agent = Agent(
     name="Query Generator Agent",
@@ -36,19 +30,22 @@ async def query_handler(ctx: Context, sender: str, _query: Request):
     ctx.logger.info("Query received")
     schema = get_all_schemas()
     try:
+        ctx.logger.info("Error starts here")
         # process query with Groq and database
-        response = process_query(_query.message, schema)
-        response_route = response.route # returns 'db query needed' or 'no tool needed'
-        response_text = response.response # this is either the sql query or the response from the general model
+        response = process_query(_query.query, schema)
+        response_route = response['route'] # returns 'db query needed' or 'no tool needed'
+        response_text = response['response'] # this is either the sql query or the response from the general model
         ctx.logger.info(f"Response: {response_text}, Sender: {sender}")
 
         checker_message = {
-            "text": _query.message,     # User's original prompt
+            "text": _query.query,     # User's original prompt
             "response": response_text,  # Can either be general response or SQL query from the LLM
             "sqlschema": schema            # database schema
         }
+
+        print(checker_message)
         if response_route == "db query needed":
-            await ctx.send(QUERY_CHECKER_AGENT_ADDRESS, Response(text=checker_message.text, query=checker_message.response, sqlschema=checker_message.sqlschema ))
+            await ctx.send(QUERY_CHECKER_AGENT_ADDRESS, Response(text=checker_message['text'], query=checker_message['response'], sqlschema=checker_message['sqlschema'] ))
         else:
             await ctx.send(sender, Response(text=response_text))
         
@@ -74,7 +71,7 @@ async def startup(ctx: Context):
 
 # (unifinished) handle incoming queries and makes decision based on what the query checker decides
 @query_checker_agent.on_message(model=Response)
-async def query_handler(ctx: Context, sender: str, message: Request):
+async def query_handler(ctx: Context, sender: str, message: Response):
     ctx.logger.info(f"Query received from {sender}")
     userquery = message.text
     sqlquery = message.query
@@ -82,11 +79,10 @@ async def query_handler(ctx: Context, sender: str, message: Request):
 
 
     response = check_query(sqlquery, schema, userquery)
-    print(response)
 
 
 # run all the agents at the same time basically :3 
-bureau = Bureau()
+bureau = Bureau(port=8001)
 bureau.add(query_generator_agent)
 bureau.add(query_checker_agent)
 
