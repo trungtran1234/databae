@@ -4,13 +4,16 @@ from uagents.query import query
 from uagents.envelope import Envelope
 import json
 
-AGENT_ADDRESS = "agent1q2s9fzzvknhuajeplqfp5zeff9ejmraxmcpcqpeup3kajwvkkxxwcqnhwt2"
+# Agent address
+AGENT_ADDRESS = "agent1qtafwkkm26h5gdkkz39pd5nnt604q96xh4hperynl085cwzquh0uyunffjz"
 
 app = FastAPI()
 
+# Define request model
 class TestRequest(Model):
     message: str
 
+# Function to send query to agent and get response
 async def agent_query(req):
     response = await query(destination=AGENT_ADDRESS, message=req, timeout=5)
     if isinstance(response, Envelope):
@@ -24,9 +27,9 @@ def read_root():
 
 @app.post("/endpoint")
 async def make_agent_call(req: Request):
-    model = TestRequest.parse_obj(await req.json())
     try:
+        model = TestRequest.parse_obj(await req.json())
         res = await agent_query(model)
-        return f"successful call - agent response: {res}"
+        return {"status": "successful", "agent_response": res}
     except Exception as e:
-        return f"unsuccessful agent call: {str(e)}"
+        return {"status": "unsuccessful", "error": str(e)}
