@@ -36,7 +36,7 @@ export default function Component() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
         >
-          databop.
+          databae.
         </motion.h1>
         <motion.p
           className="mb-8 text-xl text-blue-100"

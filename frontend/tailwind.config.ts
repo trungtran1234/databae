@@ -1,20 +1,28 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  content: [
+    darkMode: ["class"],
+    content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {
-      colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-        WhiteBg: "#F3EBEB",  // Add your custom color here
-      },
-    },
+  	extend: {
+  		colors: {
+  			background: 'var(--background)',
+  			foreground: 'var(--foreground)',
+  			WhiteBg: '#79aced',
+        ThemeBg: '#e0f2fe',
+        CircleColor: '#505efa'
+  		},
+  		borderRadius: {
+  			lg: 'var(--radius)',
+  			md: 'calc(var(--radius) - 2px)',
+  			sm: 'calc(var(--radius) - 4px)'
+  		}
+  	}
   },
-  plugins: [],
+  plugins: [require("tailwindcss-animate")],
 };
 export default config;
