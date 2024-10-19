@@ -77,14 +77,35 @@ async def query_handler(ctx: Context, sender: str, message: Response):
     sqlquery = message.query
     schema = message.schema
 
-
     response = check_query(sqlquery, schema, userquery)
+
+# query executor agent
+query_executor_agent = Agent(
+    name="Query Executor Agent",
+    seed="Query Executor Secret Phrase",
+    port=8001,
+    endpoint="http://localhost:8001/submit",
+)
+
+QUERY_EXECUTOR_AGENT_ADDRESS = "agent1qteq8csjw7q5w8wzpevd3qk7ygrh4cra3pjnx7g2g89zlpmynmhcjkatpwd"
+
+@query_executor_agent.on_event("startup")
+async def startup(ctx: Context):
+    ctx.logger.info(f"Starting up {query_executor_agent.name}")
+    ctx.logger.info(f"With address: {query_executor_agent.address}")
+    ctx.logger.info(f"And wallet address: {query_executor_agent.wallet.address()}")
+
+
+@query_executor_agent.on_message(model=Response)
+async def query_execution(ctx: Context, sender: str, message: Response):
+    response = execute_query(message.query)
 
 
 # run all the agents at the same time basically :3 
 bureau = Bureau(port=8001)
 bureau.add(query_generator_agent)
 bureau.add(query_checker_agent)
+bureau.add(query_executor_agent)
 
 if __name__ == "__main__":
     bureau.run()
