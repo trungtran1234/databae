@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from uagents import Model
 from uagents.query import query
@@ -12,7 +12,7 @@ AGENT_ADDRESS = "agent1qtafwkkm26h5gdkkz39pd5nnt604q96xh4hperynl085cwzquh0uyunff
 app = FastAPI()
 
 # Define request model
-class TestRequest(Model):
+class UserRequest(Model):
     message: str
 
 class DbBodyModel(BaseModel):
@@ -36,10 +36,11 @@ def read_root():
 @app.post("/endpoint")
 async def make_agent_call(req: Request):
     try:
-        model = TestRequest.parse_obj(await req.json())
+        model = UserRequest.parse_obj(await req.json())
         res = await agent_query(model)
         return {"status": "successful", "agent_response": res}
     except Exception as e:
+        print(e)
         return {"status": "unsuccessful", "error": str(e)}
 
 # endpoint that takes in database connection details,

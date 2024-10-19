@@ -77,7 +77,7 @@ def close_connection(connection):
 # helper function to grab all schemas from the database
 # it will return a dictionary of the format
 # {
-# table_name: [ 'column_name': 'example_name', 'data_type': 'example_data_type' ],
+# table_name: [ {}'column_name': 'example_name', 'data_type': 'example_data_type' ],
 # table_name2: [ 'column_name_2': 'example_name', 'data_type': 'example_data_type' ],
 # }
 def get_all_schemas():
