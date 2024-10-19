@@ -84,10 +84,11 @@ def get_all_schemas():
     conn = create_connection()
     if not conn:
         return {}
+    
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=%s", 
+            "SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=%s", 
             [conn.database]
         )
         schemas = cursor.fetchall()
@@ -98,9 +99,25 @@ def get_all_schemas():
     if schemas:
         dict_of_data_schema = {}
         for schema in schemas:
-            if schema[0] not in dict_of_data_schema:
-                dict_of_data_schema[schema[0]] = []
-            dict_of_data_schema[schema[0]].append({"column_name": schema[1], "data_type": schema[2]})
+            db_name = schema[0]  # Database name
+            table_name = schema[1]  # Table name
+            column_name = schema[2]  # Column name
+            data_type = schema[3]  # Data type
+
+            # Check if the database name is already in the dictionary
+            if db_name not in dict_of_data_schema:
+                dict_of_data_schema[db_name] = {}  # Add the database name as a key with an empty dictionary
+
+            # Check if the table name exists within the current database
+            if table_name not in dict_of_data_schema[db_name]:
+                dict_of_data_schema[db_name][table_name] = []  # Add the table name as a key with an empty list
+
+            # Add column details to the table's list
+            dict_of_data_schema[db_name][table_name].append({
+                "column_name": column_name,
+                "data_type": data_type
+            })
+
         return dict_of_data_schema
     else:
         return {}

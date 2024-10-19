@@ -1,7 +1,7 @@
 from uagents import Agent, Context, Model, Bureau
 from dotenv import load_dotenv
 from db_tools import create_connection, get_all_schemas
-from agent_funcs import process_query, check_query
+from agent_funcs import process_query, check_query, execute_query
 from agent_class import Request, Response
 
 load_dotenv()
@@ -78,6 +78,12 @@ async def query_handler(ctx: Context, sender: str, message: Response):
     schema = message.schema
 
     response = check_query(sqlquery, schema, userquery)
+    ctx.logger.info(f"Response: {response}")
+
+    if response == "QUERY CHECKER PASSED":
+        await ctx.send(QUERY_EXECUTOR_AGENT_ADDRESS, Response(text="Query to execute", query=sqlquery, sqlschema=schema))
+    else:
+        await ctx.send(sender, Response(text="fail"))
 
 # query executor agent
 query_executor_agent = Agent(
@@ -99,6 +105,7 @@ async def startup(ctx: Context):
 @query_executor_agent.on_message(model=Response)
 async def query_execution(ctx: Context, sender: str, message: Response):
     response = execute_query(message.query)
+    ctx.logger.info(f"Query executed: {response}")
 
 
 # run all the agents at the same time basically :3 
