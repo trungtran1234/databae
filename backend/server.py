@@ -6,11 +6,26 @@ from uagents.envelope import Envelope
 import json
 from db_tools import check_and_add_db_credentials
 import agent_class
+from fastapi.middleware.cors import CORSMiddleware
 
 # Agent address
 AGENT_ADDRESS = "agent1qtafwkkm26h5gdkkz39pd5nnt604q96xh4hperynl085cwzquh0uyunffjz"
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:3000",  # Your React app's origin
+]
+
+# Add CORS middleware to the FastAPI app
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  
+    allow_credentials=True,  
+    allow_methods=["*"],  
+    allow_headers=["*"],  
+)
+
 
 
 class DbBodyModel(BaseModel):
