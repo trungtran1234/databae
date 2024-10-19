@@ -77,7 +77,7 @@ async def query_handler(ctx: Context, sender: str, message: Response):
     ctx.logger.info(f"Query received from {sender}")
     userquery = message.text
     sqlquery = message.query
-    schema = message.schema
+    schema = message.sqlschema
     user_address = message.user
 
     response = check_query(sqlquery, schema, userquery)
@@ -85,7 +85,7 @@ async def query_handler(ctx: Context, sender: str, message: Response):
     ctx.logger.info(f"Response: {response}")
 
     if response == "QUERY CHECKER PASSED":
-        await ctx.send(QUERY_EXECUTOR_AGENT_ADDRESS, Response(text="Query to execute", query=sqlquery, sqlschema=schema, user=user_address))
+        await ctx.send(QUERY_EXECUTOR_AGENT_ADDRESS, Response(text=userquery, query=sqlquery, sqlschema=schema, user=user_address))
     else:
         await ctx.send(user_address, Response(text="fail"))
 
@@ -110,14 +110,39 @@ async def startup(ctx: Context):
 async def query_execution(ctx: Context, sender: str, message: Response):
     response = execute_query(message.query)
     ctx.logger.info(f"Query executed: {response}")
+    await ctx.send(QUERY_ANALYZER_AGENT_ADDRESS, Response(text=message.text, query=message.query, sqlschema=message.sqlschema, user=message.user))
 
 
+# query executor agent
+query_analyzer_agent = Agent(
+    name="Query Analyzer Agent",
+    seed="Query Analyzer Secret Phrase",
+    port=8001,
+    endpoint="http://localhost:8001/submit",
+)
+
+QUERY_ANALYZER_AGENT_ADDRESS = "agent1qw9hjwe6k9tv766r265ka96504ntnmelwjc06xawqv8xzq2wsnrc7rzgkkl"
+
+@query_analyzer_agent.on_event("startup")
+async def startup(ctx: Context):
+    ctx.logger.info(f"Starting up {query_analyzer_agent.name}")
+    ctx.logger.info(f"With address: {query_analyzer_agent.address}")
+    ctx.logger.info(f"And wallet address: {query_analyzer_agent.wallet.address()}")
+
+@query_analyzer_agent.on_message(model=Response)
+async def query_analysis(ctx: Context, sender: str, message: Response):
+    ctx.logger.info(f"Response received from {sender}")
+    userquery = message.text
+    sqlquery = message.query
+    schema = message.sqlschema
+    user_address = message.user
 
 # run all the agents at the same time basically :3 
 bureau = Bureau(port=8001)
 bureau.add(query_generator_agent)
 bureau.add(query_checker_agent)
 bureau.add(query_executor_agent)
+bureau.add(query_analyzer_agent)
 
 if __name__ == "__main__":
     bureau.run()
