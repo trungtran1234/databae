@@ -1,6 +1,8 @@
 "use client"
 import React from 'react';
 import InputField from './InputField';
+import { motion } from 'framer-motion'
+
 
 interface DatabaseConnectionProps { }
 
@@ -15,27 +17,36 @@ const DatabaseConnection: React.FC<DatabaseConnectionProps> = () => {
 
     return (
         <main className="flex flex-col text-sm text-gray-500 max-h-[600px] min-w-[440px] justify-center items-center">
-            <section className="flex flex-col items-center px-6 py-8 max-w-[500px] w-full min-h-[300px] bg-WhiteBg rounded-[32px] shadow-[8px_8px_4px_rgba(0,0,0,0.25)]">
-                <h1 className="self-center text-3xl font-semibold text-indigo-600">
+            <motion.section
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{
+                    type: "spring",
+                    stiffness: 100,
+                    damping: 35,
+                }}
+                className="flex flex-col items-center px-6 py-6 max-w-[500px] w-full min-h-fit bg-white rounded-[32px] shadow-[8px_8px_4px_rgba(0,0,0,0.25)]"
+            >
+                <h1 className="self-center text-2xl font-semibold text-indigo-600">
                     Database Connection
                 </h1>
-                <p className="mt-2.5">
+                <p className="mt-2.5 text-xs">
                     Enter your database connection details to get started
                 </p>
-                <form className="w-full h-full">
+                <form className="w-full h-full text-xs">
                     {inputFields.map((field, index) => (
                         <InputField key={index} {...field} />
                     ))}
                     <div className='flex justify-center'>
                         <button
                             type="submit"
-                            className="self-center px-9 py-2 mt-7 w-full max-w-[200px] text-2xl text-white whitespace-nowrap bg-indigo-600 rounded-2xl"
+                            className="self-center px-9 py-2 mt-7 w-full max-w-[200px] text-xl text-white whitespace-nowrap bg-indigo-600 rounded-2xl"
                         >
                             Connect
                         </button>
                     </div>
                 </form>
-            </section>
+            </motion.section>
         </main>
     );
 };
