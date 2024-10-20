@@ -1,4 +1,5 @@
 from uagents import Model
+from typing import Any, Optional
 
 class Request(Model):
     query: str
@@ -6,6 +7,11 @@ class Request(Model):
 
 class Response(Model):
     text: str
-    query: str = None
-    sqlschema: dict = None
-    user: str = None
+    query: Optional[str] = None
+    sqlschema: Optional[dict] = None
+    user: Optional[str] = None
+    table: Optional[Any] = None
+
+    class Config:
+        # Include fields with None values during serialization
+        exclude_none = False

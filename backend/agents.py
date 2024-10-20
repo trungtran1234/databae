@@ -1,3 +1,5 @@
+import os
+import tempfile
 from uagents import Agent, Context, Model, Bureau
 from dotenv import load_dotenv
 from db_tools import create_connection, get_all_schemas
@@ -26,6 +28,7 @@ async def startup(ctx: Context):
 @query_generator_agent.on_query(model=Request, replies={Response})
 async def query_handler(ctx: Context, sender: str, _query: Request):
     user_address = sender
+    ctx.logger.info(f"USER ADDRESS IN GENERATOR!! : {user_address}")
     
     ctx.logger.info("Query received")
     schema = get_all_schemas()
@@ -77,6 +80,7 @@ async def query_handler(ctx: Context, sender: str, message: Response):
     sqlquery = message.query
     schema = message.sqlschema
     user_address = message.user
+    ctx.logger.info(f"USER ADDRESS in query checker!! : {user_address}")
 
     response = check_query(sqlquery, schema, userquery)
 
@@ -137,7 +141,19 @@ async def query_analysis(ctx: Context, sender: str, message: Response):
 
     table = generate_table(sqlqueryResult,userquery,schema)
 
-    print(table)
+    print("From query analyzer:", table) #structured_data
+    # Store the generated table in a temporary file
+    file_path = os.path.join("response.txt")
+    
+    try:
+        # Write the table to the response.txt file
+        with open(file_path, "w") as file:
+            file.write(table)
+        ctx.logger.info(f"Table stored in: {file_path}")
+        
+        # Send a message back to the user indicating success and file location    
+    except Exception as e:
+        ctx.logger.error(f"Failed to write to file: {str(e)}")
 
 
 # run all the agents at the same time basically :3 
