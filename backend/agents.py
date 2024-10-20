@@ -35,6 +35,8 @@ async def query_handler(ctx: Context, sender: str, _query: Request):
     ctx.logger.info("Query received")
     schema = get_all_schemas()
     try:
+        with open(os.path.join("status.txt"), "w") as file:
+            file.write("Checking whether a query is even needed or not...")
         # process query with Groq and database
         response = process_query(_query.query, schema)
         response_route = response['route'] # returns 'db query needed' or 'no tool needed'

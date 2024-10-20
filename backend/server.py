@@ -58,7 +58,7 @@ async def make_agent_call(req: Request):
         model = agent_class.Request.parse_obj(await req.json())
         res = await agent_query(model)
         print('what is in here?', res)
-        if not res or res == "success" or res == "returned" or type(res) == str:
+        if not res or res == "success" or res == "returned":
             print('im right here!')
             if os.path.exists('response.txt'):
                 with open('response.txt', "r") as file:
