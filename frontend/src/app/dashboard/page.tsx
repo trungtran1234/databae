@@ -135,4 +135,4 @@ export default function DatabaseVisualizer() {
             </motion.div>
         </div>
     )
-}
+}   
