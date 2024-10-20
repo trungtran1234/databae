@@ -2,10 +2,12 @@ from datetime import date, datetime
 import json
 from db_tools import create_connection, get_all_schemas
 import re
-from instructions import SQL_CREATOR_INSTRUCTION, CHECKER_INSTRUCTION
+from instructions import SQL_CREATOR_INSTRUCTION, CHECKER_INSTRUCTION, DATA_ANALYSIS_INSTRUCTION
 from groq import Groq
 import os
 from dotenv import load_dotenv
+import pandas as pd
+
 
 ROUTING_MODEL = "llama3-70b-8192"
 TOOL_USE_MODEL = "llama3-groq-70b-8192-tool-use-preview"
@@ -133,7 +135,6 @@ def execute_query(query):
 
             # Check if results are empty
             if results:
-                print('results', json.dumps(results, cls=CustomJSONEncoder))
                 return json.dumps(results, cls=CustomJSONEncoder)
             else:
                 return json.dumps({"message": "Query executed successfully but returned no results."})
@@ -143,3 +144,123 @@ def execute_query(query):
     else:
         return json.dumps({"error": "Database connection failed"})
     
+
+def analyzer_route_tool(userquery, sqlqueryResult, schema):
+    """Routing logic to let LLM decide which tools are needed"""
+    messages  = [
+        {
+            "role": "system",
+            "content": (
+                "You are a data analytics assistant. You can generate charts and tables based on the provided informations. "
+                f"Schema: {schema}\nSQL Query Result from the user prompt: {sqlqueryResult}"
+            ),
+        },
+        {
+            "role": "user",
+            "content": userquery,
+        }
+    ]
+
+    tool_definitions = [
+        {
+            "type": "function",
+            "function": {
+                "name": "generate_table",
+                "description": "Generates a table based on provided data",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "description": "A list of lists where the first list contains the column headers, and subsequent lists contain the rows of the table"
+                        }
+                    },
+                    "required": ["data"]
+                }
+            }
+        }
+    ]
+
+    response = client.chat.completions.create(
+        model=TOOL_USE_MODEL,
+        messages=messages,
+        tools=tool_definitions,
+        tool_choice="auto",
+        max_tokens=4096
+    )
+    response_message = response.choices[0].message
+    tool_calls = response_message.tool_calls
+    messages.append({
+        "role": response_message.role,
+        "content": response_message.content
+    })
+    for tool_call in tool_calls:
+        function_name = tool_call.function.name
+        function_args = json.loads(tool_call.function.arguments)
+
+        if function_name == "generate_table":
+            function_response = generate_table(function_args['data'])
+            tool_name = "table_gen"
+            function_response_message = f"table: '{function_response}'"
+        else:
+            continue
+
+        messages.append(
+            {
+                "tool_call_id": tool_call.id,
+                "role": "tool",
+                "name": tool_name,
+                "content": function_response_message,
+            }
+        )
+
+    second_response = client.chat.completions.create(
+        model=TOOL_USE_MODEL,
+        messages=messages,
+        max_tokens=1024
+    )
+    print('response', second_response.choices[0].message.content)
+    return second_response.choices[0].message.content
+
+def generate_table(data, userquery, schema):
+    """
+    Generates a table using the provided columns and rows.
+    
+    Args:
+        columns (list): A list of column headers.
+        rows (list): A list of lists where each inner list represents a row.
+    
+    Returns:
+        str: A string representation of the table (or an HTML table).
+    """
+    # Create a DataFrame from the provided columns and rows
+
+    
+    response = client.chat.completions.create(
+        model=TOOL_USE_MODEL,
+        messages=[
+            {"role": "system", "content": DATA_ANALYSIS_INSTRUCTION},
+            {"role": "user", "content": f"User Query:{userquery}\n Data reference: {data}\n Schema of Database {schema}"}
+        ],
+        max_tokens=4096
+    )
+    
+    #df = pd.DataFrame(response.choices[0].message.content)
+
+    # Return the DataFrame as an HTML table or string table
+    #return df.to_html(index=False)  # You can change to to_string() if text output is desired.
+    json_string = response.choices[0].message.content
+    print("json_string! : ", json_string)
+    data = json.loads(json_string)
+
+    df = pd.DataFrame(data)
+
+    return df
+
+

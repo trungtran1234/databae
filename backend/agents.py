@@ -1,12 +1,10 @@
 from uagents import Agent, Context, Model, Bureau
 from dotenv import load_dotenv
 from db_tools import create_connection, get_all_schemas
-from agent_funcs import process_query, check_query, execute_query
+from agent_funcs import process_query, check_query, execute_query, generate_table
 from agent_class import Request, Response
 
 load_dotenv()
-
-
 
 query_generator_agent = Agent(
     name="Query Generator Agent",
@@ -110,7 +108,7 @@ async def startup(ctx: Context):
 async def query_execution(ctx: Context, sender: str, message: Response):
     response = execute_query(message.query)
     ctx.logger.info(f"Query executed: {response}")
-    await ctx.send(QUERY_ANALYZER_AGENT_ADDRESS, Response(text=message.text, query=message.query, sqlschema=message.sqlschema, user=message.user))
+    await ctx.send(QUERY_ANALYZER_AGENT_ADDRESS, Response(text=message.text, query=response, sqlschema=message.sqlschema, user=message.user))
 
 
 # query executor agent
@@ -133,9 +131,14 @@ async def startup(ctx: Context):
 async def query_analysis(ctx: Context, sender: str, message: Response):
     ctx.logger.info(f"Response received from {sender}")
     userquery = message.text
-    sqlquery = message.query
+    sqlqueryResult = message.query
     schema = message.sqlschema
     user_address = message.user
+
+    table = generate_table(sqlqueryResult,userquery,schema)
+
+    print(table)
+
 
 # run all the agents at the same time basically :3 
 bureau = Bureau(port=8001)
