@@ -6,6 +6,8 @@ import { Button } from "@/Components/ui/button"
 import { Textarea } from "@/Components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card"
 import { Send } from 'lucide-react'
+import ReactMarkdown from 'react-markdown';
+
 
 interface FloatingCircleProps {
     size: string;
@@ -45,8 +47,10 @@ export default function DatabaseVisualizer() {
             const data = await res.json()
             console.log('data', data)
             if (data.status === 'successful') {
+                console.log('IT IS SUCCESSFUL')
                 setResponse(data['agent_response'])
             } else {
+                console.log('NAHHH')
                 setResponse(`Error: ${data.error}`)
             }
 
@@ -57,7 +61,7 @@ export default function DatabaseVisualizer() {
     }
 
     return (
-        <div className="min-h-screen bg-ThemeBg p-8 flex flex-col items-center overflow-hidden relative">
+        <div className="min-h-screen bg-ThemeBg p-8 flex flex-col items-center overflow-scroll relative">
             {/* Floating circles */}
             <FloatingCircle size="w-16 h-16" initialPosition={{ top: "10%", left: "10%" }} duration={7} />
             <FloatingCircle size="w-24 h-24" initialPosition={{ top: "20%", right: "15%" }} duration={9} />
@@ -78,33 +82,38 @@ export default function DatabaseVisualizer() {
                 transition={{ duration: 0.5 }}
                 className="w-full max-w-3xl relative z-0"
             >
-                <Card className="shadow-lg overflow-hidden">
-                    <CardContent className="p-6 h-96">
-                        <div className="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
-                            {response ? response : 'Response will appear here'}
+                <Card className="shadow-lg min-h-[calc(100vh-30vh)] max-h-[calc(100vh-45vh)] mb-2 overflow-y-scroll"> {/* Adjusted min height */}
+                    <CardContent className="p-6 h-full overflow-y-auto ">
+                        <div className="w-full h-full bg-white rounded-lg flex items-center justify-center text-gray-400 overflow-auto">
+                            {response ? (
+                                <ReactMarkdown className="bg-white prose">{response}</ReactMarkdown>
+                            ) : (
+                                'How can I help you?'
+                            )}
                         </div>
                     </CardContent>
                 </Card>
             </motion.div>
+
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="w-full max-w-3xl mt-2 relative z-10"
+                className="w-full max-w-3xl mt-4 mb-8 fixed bottom-0 transform rounded-lg "
+
             >
-                <h2 className="text-xl font-semibold text-blue-800 mb-2">How can I help you?</h2>
                 <Card className="shadow-md overflow-hidden">
-                    <CardContent className="p-4">
+                    <CardContent className="flex flex-row p-4">
                         <Textarea
                             placeholder="Explain this database"
-                            className="w-full mb-4 p-2 border border-gray-200 rounded-md"
+                            className="w-full bottom-0 min-h-[20px] max-h-10 mr-3 left-1/2 p-2 border border-gray-200 rounded-md"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                         />
                         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                             <Button
                                 onClick={handleRunQuery}
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center"
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-md flex items-center"
                             >
                                 <Send className="w-4 h-4 mr-2" />
                                 Run Query

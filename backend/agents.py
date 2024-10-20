@@ -77,7 +77,7 @@ async def query_handler(ctx: Context, sender: str, message: Response):
     ctx.logger.info(f"Query received from {sender}")
     userquery = message.text
     sqlquery = message.query
-    schema = message.schema
+    schema = message.sqlschema
     user_address = message.user
 
     response = check_query(sqlquery, schema, userquery)
