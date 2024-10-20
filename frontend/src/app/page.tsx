@@ -36,9 +36,9 @@ export default function Component() {
           transition={{ duration: 0.8, ease: 'easeOut' }}
         >
           <Image
-            src="/images/databaelogo.png" // Route of the image file
-            height={196} // Desired size with correct aspect ratio
-            width={196} // Desired size with correct aspect ratio
+            src="/images/logo.png" // Route of the image file
+            height={210} // Desired size with correct aspect ratio
+            width={210} // Desired size with correct aspect ratio
             alt="LOGO"
           />
         </motion.div>
@@ -56,7 +56,7 @@ export default function Component() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }}
         >
-          Simplify Database!
+          Simplify Databases.
         </motion.p>
         <motion.button
           className="rounded-full bg-blue-600 px-8 py-3 text-lg font-semibold text-white shadow-lg transition-colors hover:bg-blue-50"

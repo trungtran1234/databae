@@ -69,7 +69,7 @@ export default function DatabaseVisualizer() {
     }
 
     return (
-        <div className="min-h-screen bg-ThemeBg p-8 flex flex-col items-center overflow-scroll relative">
+        <div className="min-h-screen bg-ThemeBg p-8 flex flex-col items-center overflow-visible relative">
             {/* Floating circles */}
             <FloatingCircle size="w-16 h-16" initialPosition={{ top: "10%", left: "10%" }} duration={7} />
             <FloatingCircle size="w-24 h-24" initialPosition={{ top: "20%", right: "15%" }} duration={9} />
@@ -90,7 +90,7 @@ export default function DatabaseVisualizer() {
                 transition={{ duration: 0.5 }}
                 className="w-full max-w-3xl relative z-0"
             >
-                <Card className="shadow-lg min-h-[calc(100vh-30vh)] max-h-[calc(100vh-45vh)] mb-2 overflow-y-scroll">
+                <Card className="shadow-lg min-h-[calc(100vh-30vh)] max-h-[calc(100vh-45vh)] mb-2 overflow-auto">
                     <CardContent className="p-6 h-full overflow-y-auto">
                         {isLoading ? (
                             <div className='w-full h-full flex items-center justify-center'>
@@ -113,7 +113,7 @@ export default function DatabaseVisualizer() {
                                         </ReactMarkdown>
                                     )
                                 ) : (
-                                    'How can I help you?'
+                                    <div className='text-2xl'>How can I help you?</div>
                                 )}
                             </div>
                         )}
