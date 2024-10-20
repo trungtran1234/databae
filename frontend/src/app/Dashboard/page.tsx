@@ -31,9 +31,29 @@ const FloatingCircle: React.FC<FloatingCircleProps> = ({ size, initialPosition, 
 
 export default function DatabaseVisualizer() {
     const [query, setQuery] = useState('')
+    const [response, setResponse] = useState('')
 
-    const handleRunQuery = () => {
-        console.log('Running query:', query)
+    const handleRunQuery = async () => {
+        try {
+            const res = await fetch('http://localhost:8000/endpoint', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ query }),
+            })
+            const data = await res.json()
+            console.log('data', data)
+            if (data.status === 'successful') {
+                setResponse(data['agent_response'])
+            } else {
+                setResponse(`Error: ${data.error}`)
+            }
+
+        } catch (error) {
+            console.error('Error running query:', error)
+            setResponse('Error: Something went wrong')
+        }
     }
 
     return (
@@ -61,7 +81,7 @@ export default function DatabaseVisualizer() {
                 <Card className="shadow-lg overflow-hidden">
                     <CardContent className="p-6 h-96">
                         <div className="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
-                            response will appear here
+                            {response ? response : 'Response will appear here'}
                         </div>
                     </CardContent>
                 </Card>
