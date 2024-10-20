@@ -33,6 +33,8 @@ def route_query(query):
     Given the following user query, determine if any tools or a database query are needed to answer it.
     If a database query is needed, respond with 'TOOL: DB_QUERY'.
     If no tools are needed, respond with 'NO TOOL'.
+    EVEN IF the user's query does not directly asks for a query, they can potentially ask for Data from the table, which then you 
+    can assume to answer with 'TOOL: DB_QUERY" 
 
     User query: {query}
 

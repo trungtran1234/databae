@@ -44,6 +44,6 @@ For example, if the user asks, “Which entries in the dataset represent the bes
 
 Ensure that your analysis is structured, logical, and directly addresses the user’s query. Your insights should be actionable and backed by the data, and where necessary, assumptions or data limitations should be clearly communicated.
 
-AGAIN, make sure you return a data format for the pandas data table and NOTHING ELSE!!!
+AGAIN, make sure you return a data format for the pandas data table and NOTHING ELSE!!! There should not be any extraneous properties that end up breaking the final Pandas DataFrame.
 Make sure it the response is formatted such that the response can be fed into this: pandas.DataFrame(response). Remember to use DOUBLE QUOTES, instead of single quotes
 """
