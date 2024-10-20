@@ -68,7 +68,7 @@ async def make_agent_call(req: Request):
     except Exception as e:
         if not res or res == "success": 
             if os.path.exists('response.txt'):
-                print('im inside her!')
+                print('im inside here!')
                 with open('response.txt', "r") as file:
                     print('im reading it!!')
                     file_content = file.read().replace("\n", "").replace("text-align: right;", "text-align: center;")
