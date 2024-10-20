@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, memo } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from "@/Components/ui/button"
 import { Textarea } from "@/Components/ui/textarea"
@@ -32,12 +32,14 @@ const FloatingCircle: React.FC<FloatingCircleProps> = ({ size, initialPosition, 
     />
 )
 
+
 export default function DatabaseVisualizer() {
     const [query, setQuery] = useState('')
     const [response, setResponse] = useState('')
     const [isLoading, setLoading] = useState(false)
 
     const handleRunQuery = async () => {
+
         setLoading(true);
         try {
             const res = await fetch('http://localhost:8000/endpoint', {
@@ -88,7 +90,7 @@ export default function DatabaseVisualizer() {
                 transition={{ duration: 0.5 }}
                 className="w-full max-w-3xl relative z-0"
             >
-                <Card className="shadow-lg min-h-[calc(100vh-30vh)] max-h-[calc(100vh-45vh)] mb-2 overflow-y-scroll"> {/* Adjusted min height */}
+                <Card className="shadow-lg min-h-[calc(100vh-30vh)] max-h-[calc(100vh-45vh)] mb-2 overflow-y-scroll">
                     <CardContent className="p-6 h-full overflow-y-auto">
                         {isLoading ? (
                             <div className='w-full h-full flex items-center justify-center'>
@@ -97,11 +99,24 @@ export default function DatabaseVisualizer() {
                         ) : (
                             <div className="w-full h-full bg-white rounded-lg flex items-center justify-center text-gray-400 overflow-auto">
                                 {response ? (
-                                    <ReactMarkdown className="bg-white prose">{response}</ReactMarkdown>
+                                    // Check if response contains HTML tags
+                                    response.includes('<') && response.includes('>') ? (
+                                        // Display HTML safely
+                                        <div
+                                            className="prose"
+                                            dangerouslySetInnerHTML={{ __html: response }}
+                                        />
+                                    ) : (
+                                        // Display Markdown
+                                        <ReactMarkdown className="bg-white prose">
+                                            {response}
+                                        </ReactMarkdown>
+                                    )
                                 ) : (
                                     'How can I help you?'
                                 )}
-                            </div>)}
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </motion.div>

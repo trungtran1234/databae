@@ -7,6 +7,7 @@ from uagents.envelope import Envelope
 import json
 from db_tools import check_and_add_db_credentials
 import agent_class
+import asyncio
 from fastapi.middleware.cors import CORSMiddleware
 
 # Agent address
@@ -38,7 +39,7 @@ class DbBodyModel(BaseModel):
 
 
 async def agent_query(req):
-    response = await query(destination=AGENT_ADDRESS, message=req, timeout=30)
+    response = await query(destination=AGENT_ADDRESS, message=req, timeout=5)
     if isinstance(response, Envelope):
         data = json.loads(response.decode_payload())
         return data["text"]
@@ -50,19 +51,30 @@ def read_root():
 
 @app.post("/endpoint")
 async def make_agent_call(req: Request):
+    res = None
     try:
         model = agent_class.Request.parse_obj(await req.json())
         res = await agent_query(model)
-
-        if os.path.exists('response.txt'):
-            with open('response.txt', "r") as file:
-                file_content = file.read().replace("\n", "")
+        print('what is in here?', res)
+        if not res or res == "success":
+            print('im right here!')
+            if os.path.exists('response.txt'):
+                with open('response.txt', "r") as file:
+                    print('im reading it!!')
+                    file_content = file.read().replace("\n", "")
+            return {"status": "successful", "agent_response": file_content}
         else:
-            file_content = "File not found"
-        return {"status": "successful", "agent_response": file_content}
+            return {"status": "successful", "agent_response": res}
     except Exception as e:
-        print(e)
-        return {"status": "unsuccessful", "error": str(e)}
+        if not res or res == "success": 
+            if os.path.exists('response.txt'):
+                print('im inside her!')
+                with open('response.txt', "r") as file:
+                    print('im reading it!!')
+                    file_content = file.read().replace("\n", "").replace("text-align: right;", "text-align: center;")
+                return {"status": "successful", "agent_response": file_content}
+        else:
+            return {"status": "successful", "agent_response": res}
 
 # endpoint that takes in database connection details,
 # checks if there is the db connection is valid,

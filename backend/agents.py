@@ -33,7 +33,6 @@ async def query_handler(ctx: Context, sender: str, _query: Request):
     ctx.logger.info("Query received")
     schema = get_all_schemas()
     try:
-        ctx.logger.info("Error starts here")
         # process query with Groq and database
         response = process_query(_query.query, schema)
         response_route = response['route'] # returns 'db query needed' or 'no tool needed'
@@ -48,6 +47,7 @@ async def query_handler(ctx: Context, sender: str, _query: Request):
 
         print(checker_message)
         if response_route == "db query needed":
+            ctx.logger.info(f"AYOOO: {response_text}")
             await ctx.send(QUERY_CHECKER_AGENT_ADDRESS, Response(text=checker_message['text'], query=checker_message['response'], sqlschema=checker_message['sqlschema'], user=user_address))
         else:
             await ctx.send(sender, Response(text=response_text))
@@ -140,20 +140,21 @@ async def query_analysis(ctx: Context, sender: str, message: Response):
     user_address = message.user
 
     table = generate_table(sqlqueryResult,userquery,schema)
-
     print("From query analyzer:", table) #structured_data
     # Store the generated table in a temporary file
     file_path = os.path.join("response.txt")
     
+
     try:
         # Write the table to the response.txt file
         with open(file_path, "w") as file:
             file.write(table)
         ctx.logger.info(f"Table stored in: {file_path}")
-        
+        await ctx.send(user_address, Response(text="returned"))
         # Send a message back to the user indicating success and file location    
     except Exception as e:
         ctx.logger.error(f"Failed to write to file: {str(e)}")
+    
 
 
 # run all the agents at the same time basically :3 
