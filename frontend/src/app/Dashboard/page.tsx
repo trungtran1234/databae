@@ -7,6 +7,7 @@ import { Textarea } from "@/Components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card"
 import { Send } from 'lucide-react'
 import ReactMarkdown from 'react-markdown';
+import { } from 'ldrs';
 
 
 interface FloatingCircleProps {
@@ -34,8 +35,10 @@ const FloatingCircle: React.FC<FloatingCircleProps> = ({ size, initialPosition, 
 export default function DatabaseVisualizer() {
     const [query, setQuery] = useState('')
     const [response, setResponse] = useState('')
+    const [isLoading, setLoading] = useState(false)
 
     const handleRunQuery = async () => {
+        setLoading(true);
         try {
             const res = await fetch('http://localhost:8000/endpoint', {
                 method: 'POST',
@@ -45,18 +48,21 @@ export default function DatabaseVisualizer() {
                 body: JSON.stringify({ query }),
             })
             const data = await res.json()
-            console.log('data', data)
-            if (data.status === 'successful') {
-                console.log('IT IS SUCCESSFUL')
-                setResponse(data['agent_response'])
+            console.log(data.status)
+
+            if (data.status == 'successful') {
+                console.log('IT IS SUCCESSFUL');
+                setResponse(data["agent_response"]);
             } else {
-                console.log('NAHHH')
-                setResponse(`Error: ${data.error}`)
+                console.log('NAHHH');
+                setResponse(`Error: ${data.error}`);
             }
 
         } catch (error) {
             console.error('Error running query:', error)
             setResponse('Error: Something went wrong')
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -83,14 +89,19 @@ export default function DatabaseVisualizer() {
                 className="w-full max-w-3xl relative z-0"
             >
                 <Card className="shadow-lg min-h-[calc(100vh-30vh)] max-h-[calc(100vh-45vh)] mb-2 overflow-y-scroll"> {/* Adjusted min height */}
-                    <CardContent className="p-6 h-full overflow-y-auto ">
-                        <div className="w-full h-full bg-white rounded-lg flex items-center justify-center text-gray-400 overflow-auto">
-                            {response ? (
-                                <ReactMarkdown className="bg-white prose">{response}</ReactMarkdown>
-                            ) : (
-                                'How can I help you?'
-                            )}
-                        </div>
+                    <CardContent className="p-6 h-full overflow-y-auto">
+                        {isLoading ? (
+                            <div className='w-full h-full flex items-center justify-center'>
+                                <l-spiral></l-spiral>
+                            </div>
+                        ) : (
+                            <div className="w-full h-full bg-white rounded-lg flex items-center justify-center text-gray-400 overflow-auto">
+                                {response ? (
+                                    <ReactMarkdown className="bg-white prose">{response}</ReactMarkdown>
+                                ) : (
+                                    'How can I help you?'
+                                )}
+                            </div>)}
                     </CardContent>
                 </Card>
             </motion.div>
@@ -105,7 +116,7 @@ export default function DatabaseVisualizer() {
                 <Card className="shadow-md overflow-hidden">
                     <CardContent className="flex flex-row p-4">
                         <Textarea
-                            placeholder="Explain this database"
+                            placeholder=" E.g. Explain this database"
                             className="w-full bottom-0 min-h-[20px] max-h-10 mr-3 left-1/2 p-2 border border-gray-200 rounded-md"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
