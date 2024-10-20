@@ -2,10 +2,12 @@ from datetime import date, datetime
 import json
 from db_tools import create_connection, get_all_schemas
 import re
-from instructions import SQL_CREATOR_INSTRUCTION, CHECKER_INSTRUCTION
+from instructions import SQL_CREATOR_INSTRUCTION, CHECKER_INSTRUCTION, DATA_ANALYSIS_INSTRUCTION
 from groq import Groq
 import os
 from dotenv import load_dotenv
+import pandas as pd
+
 
 ROUTING_MODEL = "llama3-70b-8192"
 TOOL_USE_MODEL = "llama3-groq-70b-8192-tool-use-preview"
@@ -31,6 +33,8 @@ def route_query(query):
     Given the following user query, determine if any tools or a database query are needed to answer it.
     If a database query is needed, respond with 'TOOL: DB_QUERY'.
     If no tools are needed, respond with 'NO TOOL'.
+    EVEN IF the user's query does not directly asks for a query, they can potentially ask for Data from the table, which then you 
+    can assume to answer with 'TOOL: DB_QUERY" 
 
     User query: {query}
 
@@ -133,7 +137,6 @@ def execute_query(query):
 
             # Check if results are empty
             if results:
-                print('results', json.dumps(results, cls=CustomJSONEncoder))
                 return json.dumps(results, cls=CustomJSONEncoder)
             else:
                 return json.dumps({"message": "Query executed successfully but returned no results."})
@@ -143,3 +146,165 @@ def execute_query(query):
     else:
         return json.dumps({"error": "Database connection failed"})
     
+
+def analyzer_route_tool(userquery, sqlqueryResult, schema):
+    """Routing logic to let LLM decide which tools are needed"""
+    messages  = [
+        {
+            "role": "system",
+            "content": (
+                "You are a data analytics assistant. You can generate charts and tables based on the provided informations. "
+                f"Schema: {schema}\nSQL Query Result from the user prompt: {sqlqueryResult}"
+            ),
+        },
+        {
+            "role": "user",
+            "content": userquery,
+        }
+    ]
+
+    tool_definitions = [
+        {
+            "type": "function",
+            "function": {
+                "name": "generate_table",
+                "description": "Generates a table based on provided data",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "description": "A list of lists where the first list contains the column headers, and subsequent lists contain the rows of the table"
+                        }
+                    },
+                    "required": ["data"]
+                }
+            }
+        }
+    ]
+
+    response = client.chat.completions.create(
+        model=TOOL_USE_MODEL,
+        messages=messages,
+        tools=tool_definitions,
+        tool_choice="auto",
+        max_tokens=4096
+    )
+    response_message = response.choices[0].message
+    tool_calls = response_message.tool_calls
+    messages.append({
+        "role": response_message.role,
+        "content": response_message.content
+    })
+    for tool_call in tool_calls:
+        function_name = tool_call.function.name
+        function_args = json.loads(tool_call.function.arguments)
+
+        if function_name == "generate_table":
+            function_response = generate_table(function_args['data'])
+            tool_name = "table_gen"
+            function_response_message = f"table: '{function_response}'"
+        else:
+            continue
+
+        messages.append(
+            {
+                "tool_call_id": tool_call.id,
+                "role": "tool",
+                "name": tool_name,
+                "content": function_response_message,
+            }
+        )
+
+    second_response = client.chat.completions.create(
+        model=TOOL_USE_MODEL,
+        messages=messages,
+        max_tokens=1024
+    )
+    print('response', second_response.choices[0].message.content)
+    return second_response.choices[0].message.content
+
+def generate_extraction_protocol(user_query, schema):
+    # Call the LLM to generate the protocol for extracting structured data
+    protocol_response = client.chat.completions.create(
+        model="llama3-70b-8192",
+        messages=[
+            {
+                "role": "user",
+                "content": f"Generate an extraction protocol to get structured data from the following user query and schema:\n\nUser Query: {user_query}\nSchema: {schema} \n Only narrow down the columns to match neccesary and relevant data. Do not narrow down the rows"
+            }
+        ],
+        stop=None
+    )   
+    
+    protocol = protocol_response.choices[0].message.content
+
+    print(f"PROTOCOL !! : {protocol}")
+    return protocol
+
+# Function to extract the structured data using Groq
+def extract_structured_data(user_query, sql_result, schema):
+    # Generate the extraction protocol using the user's query and schema
+    extraction_protocol = generate_extraction_protocol(user_query, schema)
+    
+    # Now use this protocol to call Groq for extracting structured data from the SQL result
+    response = client.chat.completions.create(
+        model="llama3-70b-8192",
+        messages=[
+            {"role": "system", "content": extraction_protocol},
+            {"role": "user", "content": f"Extract only the relevant columns from the following SQL result and schema to be compatible with Pandas DataFrame:\n\nSQL Result: {sql_result}\nSchema: {schema}\n\nKeep all rows intact. For each object property, make it a separate column. Return the result as valid JSON formatted for Pandas DataFrame, with no additional text or explanation."},
+            {
+                "role": "assistant",
+                "content": "```json"
+            }
+        ],
+        stop="```",
+    )
+    
+    # The assistant should return a JSON-like structure
+    structured_data_json = response.choices[0].message.content
+
+    print(f"STRUCTURED DATA JSON!! : {structured_data_json}")
+    
+    # Make sure the response is valid JSON (strip out any non-JSON parts)
+    #structured_data_json = f'[{structured_data_json}]'
+    
+    # Parse the JSON content
+    try:
+        structured_data = json.loads(structured_data_json)
+    except json.JSONDecodeError as e:
+        raise Exception(f"Failed to decode JSON from response: {structured_data_json}. Error: {str(e)}")
+    
+    return structured_data
+
+def generate_table(data, userquery, schema):
+    """
+    Generates a table using the provided data.
+    """
+    # Create a DataFrame from the provided columns and rows
+
+    structured_data = extract_structured_data(userquery, data, schema)    
+
+    df = pd.DataFrame(structured_data)
+
+    return df.to_html(index=False)
+    #df = pd.DataFrame(response.choices[0].message.content)
+
+    # # Return the DataFrame as an HTML table or string table
+    # #return df.to_html(index=False)  # You can change to to_string() if text output is desired.
+    # json_string = response.choices[0].message.content
+    # print("json_string! : ", json_string)
+    # json_string = f'[{json_string}]'
+    # data = json.loads(json_string)
+
+    # df = pd.DataFrame(data)
+
+    # return df.to_html(index=False)
+
+

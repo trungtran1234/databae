@@ -1,12 +1,12 @@
+import os
+import tempfile
 from uagents import Agent, Context, Model, Bureau
 from dotenv import load_dotenv
 from db_tools import create_connection, get_all_schemas
-from agent_funcs import process_query, check_query, execute_query
+from agent_funcs import process_query, check_query, execute_query, generate_table
 from agent_class import Request, Response
 
 load_dotenv()
-
-
 
 query_generator_agent = Agent(
     name="Query Generator Agent",
@@ -28,6 +28,7 @@ async def startup(ctx: Context):
 @query_generator_agent.on_query(model=Request, replies={Response})
 async def query_handler(ctx: Context, sender: str, _query: Request):
     user_address = sender
+    ctx.logger.info(f"USER ADDRESS IN GENERATOR!! : {user_address}")
     
     ctx.logger.info("Query received")
     schema = get_all_schemas()
@@ -79,13 +80,14 @@ async def query_handler(ctx: Context, sender: str, message: Response):
     sqlquery = message.query
     schema = message.sqlschema
     user_address = message.user
+    ctx.logger.info(f"USER ADDRESS in query checker!! : {user_address}")
 
     response = check_query(sqlquery, schema, userquery)
 
     ctx.logger.info(f"Response: {response}")
 
     if response == "QUERY CHECKER PASSED":
-        await ctx.send(QUERY_EXECUTOR_AGENT_ADDRESS, Response(text="Query to execute", query=sqlquery, sqlschema=schema, user=user_address))
+        await ctx.send(QUERY_EXECUTOR_AGENT_ADDRESS, Response(text=userquery, query=sqlquery, sqlschema=schema, user=user_address))
     else:
         await ctx.send(user_address, Response(text="fail"))
 
@@ -110,7 +112,48 @@ async def startup(ctx: Context):
 async def query_execution(ctx: Context, sender: str, message: Response):
     response = execute_query(message.query)
     ctx.logger.info(f"Query executed: {response}")
+    await ctx.send(QUERY_ANALYZER_AGENT_ADDRESS, Response(text=message.text, query=response, sqlschema=message.sqlschema, user=message.user))
 
+
+# query executor agent
+query_analyzer_agent = Agent(
+    name="Query Analyzer Agent",
+    seed="Query Analyzer Secret Phrase",
+    port=8001,
+    endpoint="http://localhost:8001/submit",
+)
+
+QUERY_ANALYZER_AGENT_ADDRESS = "agent1qw9hjwe6k9tv766r265ka96504ntnmelwjc06xawqv8xzq2wsnrc7rzgkkl"
+
+@query_analyzer_agent.on_event("startup")
+async def startup(ctx: Context):
+    ctx.logger.info(f"Starting up {query_analyzer_agent.name}")
+    ctx.logger.info(f"With address: {query_analyzer_agent.address}")
+    ctx.logger.info(f"And wallet address: {query_analyzer_agent.wallet.address()}")
+
+@query_analyzer_agent.on_message(model=Response)
+async def query_analysis(ctx: Context, sender: str, message: Response):
+    ctx.logger.info(f"Response received from {sender}")
+    userquery = message.text
+    sqlqueryResult = message.query
+    schema = message.sqlschema
+    user_address = message.user
+
+    table = generate_table(sqlqueryResult,userquery,schema)
+
+    print("From query analyzer:", table) #structured_data
+    # Store the generated table in a temporary file
+    file_path = os.path.join("response.txt")
+    
+    try:
+        # Write the table to the response.txt file
+        with open(file_path, "w") as file:
+            file.write(table)
+        ctx.logger.info(f"Table stored in: {file_path}")
+        
+        # Send a message back to the user indicating success and file location    
+    except Exception as e:
+        ctx.logger.error(f"Failed to write to file: {str(e)}")
 
 
 # run all the agents at the same time basically :3 
@@ -118,6 +161,7 @@ bureau = Bureau(port=8001)
 bureau.add(query_generator_agent)
 bureau.add(query_checker_agent)
 bureau.add(query_executor_agent)
+bureau.add(query_analyzer_agent)
 
 if __name__ == "__main__":
     bureau.run()

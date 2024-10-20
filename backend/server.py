@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from uagents import Model
@@ -37,7 +38,7 @@ class DbBodyModel(BaseModel):
 
 
 async def agent_query(req):
-    response = await query(destination=AGENT_ADDRESS, message=req, timeout=5)
+    response = await query(destination=AGENT_ADDRESS, message=req, timeout=30)
     if isinstance(response, Envelope):
         data = json.loads(response.decode_payload())
         return data["text"]
@@ -52,7 +53,13 @@ async def make_agent_call(req: Request):
     try:
         model = agent_class.Request.parse_obj(await req.json())
         res = await agent_query(model)
-        return {"status": "successful", "agent_response": res}
+
+        if os.path.exists('response.txt'):
+            with open('response.txt', "r") as file:
+                file_content = file.read().replace("\n", "")
+        else:
+            file_content = "File not found"
+        return {"status": "successful", "agent_response": file_content}
     except Exception as e:
         print(e)
         return {"status": "unsuccessful", "error": str(e)}
