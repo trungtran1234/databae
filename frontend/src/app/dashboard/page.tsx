@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, memo } from 'react'
+import React, { useState, memo, useLayoutEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from "@/Components/ui/button"
 import { Textarea } from "@/Components/ui/textarea"
@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card"
 import { Send } from 'lucide-react'
 import ReactMarkdown from 'react-markdown';
 import { } from 'ldrs';
+import parse from 'html-react-parser';
+import AgentStatus from '@/Components/AgentStatus'
 
 
 interface FloatingCircleProps {
@@ -32,6 +34,60 @@ const FloatingCircle: React.FC<FloatingCircleProps> = ({ size, initialPosition, 
     />
 )
 
+interface MyComponentProps {
+    response: string; // Assuming response is a string containing HTML
+}
+
+const FormTable: React.FC<MyComponentProps> = ({ response }) => {
+    const elRef = useRef<HTMLDivElement>(null);
+
+    useLayoutEffect(() => {
+        if (elRef.current) {
+            // Access the table after it has been rendered
+            const table = elRef.current.querySelector('table');
+
+            if (table) {
+                // Apply dynamic styles
+                table.style.width = '100%'; // Make the table take full width
+                table.style.borderCollapse = 'collapse'; // Collapse borders
+
+                // Style table headers
+                const headers = table.querySelectorAll('th');
+                headers.forEach((header) => {
+                    header.style.backgroundColor = '#f3f4f6'; // Light gray background
+                    header.style.border = '2px solid #d1d5db'; // Gray border
+                    header.style.padding = '8px'; // Padding for headers
+                });
+
+                // Style table cells
+                const cells = table.querySelectorAll('td');
+                cells.forEach((cell) => {
+                    cell.style.border = '1px solid #d1d5db'; // Gray border
+                    cell.style.padding = '8px'; // Padding for cells
+                });
+
+                // Optional: Style the table rows
+                const rows = table.querySelectorAll('tr');
+                rows.forEach((row) => {
+                    row.style.transition = 'background-color 0.2s';
+                    row.addEventListener('mouseenter', () => {
+                        row.style.backgroundColor = '#f9fafb'; // Light hover effect
+                    });
+                    row.addEventListener('mouseleave', () => {
+                        row.style.backgroundColor = ''; // Reset background
+                    });
+                });
+            }
+        }
+    }, [response]); // Run effect when response changes
+
+    return (
+        <div className="prose overflow-x-auto" ref={elRef}>
+            {parse(response)}
+        </div>
+    );
+};
+
 
 export default function DatabaseVisualizer() {
     const [query, setQuery] = useState('')
@@ -41,6 +97,7 @@ export default function DatabaseVisualizer() {
     const handleRunQuery = async () => {
 
         setLoading(true);
+
         try {
             const res = await fetch('http://localhost:8000/endpoint', {
                 method: 'POST',
@@ -88,24 +145,22 @@ export default function DatabaseVisualizer() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5 }}
-                className="w-full max-w-3xl relative z-0"
+                className="w-full max-w-5xl relative z-0"
             >
                 <Card className="shadow-lg min-h-[calc(100vh-30vh)] max-h-[calc(100vh-45vh)] mb-2 overflow-y-scroll">
                     <CardContent className="p-6 h-full overflow-y-auto">
                         {isLoading ? (
-                            <div className='w-full h-full flex items-center justify-center'>
+                            <div className='w-full h-full flex flex-col gap-y-2 items-center justify-center'>
                                 <l-spiral></l-spiral>
+                                <AgentStatus />
                             </div>
                         ) : (
-                            <div className="w-full h-full bg-white rounded-lg flex items-center justify-center text-gray-400 overflow-auto">
+                            <div className="w-full h-full bg-white rounded-lg flex items-center justify-center text-gray-400 overflow-x-scroll">
                                 {response ? (
                                     // Check if response contains HTML tags
                                     response.includes('<') && response.includes('>') ? (
                                         // Display HTML safely
-                                        <div
-                                            className="prose"
-                                            dangerouslySetInnerHTML={{ __html: response }}
-                                        />
+                                        <FormTable response={response} />
                                     ) : (
                                         // Display Markdown
                                         <ReactMarkdown className="bg-white prose">
@@ -140,6 +195,7 @@ export default function DatabaseVisualizer() {
                             <Button
                                 onClick={handleRunQuery}
                                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-md flex items-center"
+                                disabled={isLoading}
                             >
                                 <Send className="w-4 h-4 mr-2" />
                                 Run Query

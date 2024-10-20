@@ -53,20 +53,22 @@ def read_root():
 async def make_agent_call(req: Request):
     res = None
     try:
+        with open(os.path.join("status.txt"), "w") as file:
+            file.write("Start")
         model = agent_class.Request.parse_obj(await req.json())
         res = await agent_query(model)
         print('what is in here?', res)
-        if not res or res == "success":
+        if not res or res == "success" or res == "returned" or type(res) == str:
             print('im right here!')
             if os.path.exists('response.txt'):
                 with open('response.txt', "r") as file:
                     print('im reading it!!')
-                    file_content = file.read().replace("\n", "")
+                    file_content = file.read().replace("\n", "").replace("text-align: right;", "text-align: center;")
             return {"status": "successful", "agent_response": file_content}
         else:
             return {"status": "successful", "agent_response": res}
     except Exception as e:
-        if not res or res == "success": 
+        if not res or res == "success" or res == "returned": 
             if os.path.exists('response.txt'):
                 print('im inside here!')
                 with open('response.txt', "r") as file:
@@ -75,6 +77,10 @@ async def make_agent_call(req: Request):
                 return {"status": "successful", "agent_response": file_content}
         else:
             return {"status": "successful", "agent_response": res}
+    finally:
+        with open(os.path.join("status.txt"), "w") as file:
+            file.write("Done")
+    
 
 # endpoint that takes in database connection details,
 # checks if there is the db connection is valid,
@@ -88,3 +94,12 @@ async def input_connection_details(db: DbBodyModel):
     else: 
         raise HTTPException(status_code=404, detail="Could not connect to database")
     
+@app.post("/status")
+async def status(req: Request):
+    if os.path.exists("status.txt"):
+        with open("status.txt", "r") as file:
+            file_content = file.read()
+            return file_content
+    else:
+        return "None"
+        

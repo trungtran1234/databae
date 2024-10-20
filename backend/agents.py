@@ -27,6 +27,8 @@ async def startup(ctx: Context):
 # if a query is not needed, send it back to the user
 @query_generator_agent.on_query(model=Request, replies={Response})
 async def query_handler(ctx: Context, sender: str, _query: Request):
+    with open(os.path.join("status.txt"), "w") as file:
+            file.write("Generating the query...")
     user_address = sender
     ctx.logger.info(f"USER ADDRESS IN GENERATOR!! : {user_address}")
     
@@ -75,6 +77,8 @@ async def startup(ctx: Context):
 # (unifinished) handle incoming queries and makes decision based on what the query checker decides
 @query_checker_agent.on_message(model=Response)
 async def query_handler(ctx: Context, sender: str, message: Response):
+    with open(os.path.join("status.txt"), "w") as file:
+            file.write("Query checking...")
     ctx.logger.info(f"Query received from {sender}")
     userquery = message.text
     sqlquery = message.query
@@ -110,6 +114,8 @@ async def startup(ctx: Context):
 
 @query_executor_agent.on_message(model=Response)
 async def query_execution(ctx: Context, sender: str, message: Response):
+    with open(os.path.join("status.txt"), "w") as file:
+        file.write("Query is executing...")
     response = execute_query(message.query)
     ctx.logger.info(f"Query executed: {response}")
     await ctx.send(QUERY_ANALYZER_AGENT_ADDRESS, Response(text=message.text, query=response, sqlschema=message.sqlschema, user=message.user))
@@ -133,6 +139,8 @@ async def startup(ctx: Context):
 
 @query_analyzer_agent.on_message(model=Response)
 async def query_analysis(ctx: Context, sender: str, message: Response):
+    with open(os.path.join("status.txt"), "w") as file:
+        file.write("Query is being analyzed...")
     ctx.logger.info(f"Response received from {sender}")
     userquery = message.text
     sqlqueryResult = message.query
