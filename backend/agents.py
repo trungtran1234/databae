@@ -1,7 +1,7 @@
 from uagents import Agent, Context, Model, Bureau
 from dotenv import load_dotenv
 from db_tools import create_connection, get_all_schemas
-from agent_funcs import process_query, check_query
+from agent_funcs import process_query, check_query, execute_query
 from agent_class import Request, Response
 
 load_dotenv()
@@ -27,6 +27,8 @@ async def startup(ctx: Context):
 # if a query is not needed, send it back to the user
 @query_generator_agent.on_query(model=Request, replies={Response})
 async def query_handler(ctx: Context, sender: str, _query: Request):
+    user_address = sender
+    
     ctx.logger.info("Query received")
     schema = get_all_schemas()
     try:
@@ -45,7 +47,7 @@ async def query_handler(ctx: Context, sender: str, _query: Request):
 
         print(checker_message)
         if response_route == "db query needed":
-            await ctx.send(QUERY_CHECKER_AGENT_ADDRESS, Response(text=checker_message['text'], query=checker_message['response'], sqlschema=checker_message['sqlschema'] ))
+            await ctx.send(QUERY_CHECKER_AGENT_ADDRESS, Response(text=checker_message['text'], query=checker_message['response'], sqlschema=checker_message['sqlschema'], user=user_address))
         else:
             await ctx.send(sender, Response(text=response_text))
         
@@ -76,15 +78,46 @@ async def query_handler(ctx: Context, sender: str, message: Response):
     userquery = message.text
     sqlquery = message.query
     schema = message.schema
-
+    user_address = message.user
 
     response = check_query(sqlquery, schema, userquery)
+
+    ctx.logger.info(f"Response: {response}")
+
+    if response == "QUERY CHECKER PASSED":
+        await ctx.send(QUERY_EXECUTOR_AGENT_ADDRESS, Response(text="Query to execute", query=sqlquery, sqlschema=schema, user=user_address))
+    else:
+        await ctx.send(user_address, Response(text="fail"))
+
+# query executor agent
+query_executor_agent = Agent(
+    name="Query Executor Agent",
+    seed="Query Executor Secret Phrase",
+    port=8001,
+    endpoint="http://localhost:8001/submit",
+)
+
+QUERY_EXECUTOR_AGENT_ADDRESS = "agent1qteq8csjw7q5w8wzpevd3qk7ygrh4cra3pjnx7g2g89zlpmynmhcjkatpwd"
+
+@query_executor_agent.on_event("startup")
+async def startup(ctx: Context):
+    ctx.logger.info(f"Starting up {query_executor_agent.name}")
+    ctx.logger.info(f"With address: {query_executor_agent.address}")
+    ctx.logger.info(f"And wallet address: {query_executor_agent.wallet.address()}")
+
+
+@query_executor_agent.on_message(model=Response)
+async def query_execution(ctx: Context, sender: str, message: Response):
+    response = execute_query(message.query)
+    ctx.logger.info(f"Query executed: {response}")
+
 
 
 # run all the agents at the same time basically :3 
 bureau = Bureau(port=8001)
 bureau.add(query_generator_agent)
 bureau.add(query_checker_agent)
+bureau.add(query_executor_agent)
 
 if __name__ == "__main__":
     bureau.run()

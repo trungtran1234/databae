@@ -119,12 +119,27 @@ def check_query(sqlquery, schema, userquery):
 
     groqResponse = response.choices[0].message.content 
     print(groqResponse)
-    if groqResponse == "QUERY CHECKER FAILED":
-        print(f"fail")
-    elif groqResponse == "QUERY CHECKER PASSED":
-        print(f"pass")
-    else:
-        print(f"invalid response")
+    return groqResponse
+        
 
-    
+def execute_query(query):
+        # # Execute the extracted SQL query
+    conn = create_connection()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            cursor.execute(query)
+            results = cursor.fetchall()
+
+            # Check if results are empty
+            if results:
+                print('results', json.dumps(results, cls=CustomJSONEncoder))
+                return json.dumps(results, cls=CustomJSONEncoder)
+            else:
+                return json.dumps({"message": "Query executed successfully but returned no results."})
+        except Exception as e:
+            return json.dumps({"error": f"SQL execution failed: {str(e)}"})
+
+    else:
+        return json.dumps({"error": "Database connection failed"})
     
