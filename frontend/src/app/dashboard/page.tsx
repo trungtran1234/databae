@@ -137,7 +137,7 @@ export default function DatabaseVisualizer() {
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="text-3xl font-bold text-blue-800 mb-2 relative z-10"
+                className="text-3xl font-bold text-white mb-2 relative z-10"
             >
                 Databae.
             </motion.h1>
@@ -147,7 +147,7 @@ export default function DatabaseVisualizer() {
                 transition={{ duration: 0.5 }}
                 className="w-full max-w-5xl relative z-0"
             >
-                <Card className="shadow-lg min-h-[calc(100vh-30vh)] max-h-[calc(100vh-45vh)] mb-2 overflow-y-scroll">
+                <Card className="shadow-lg min-h-[calc(100vh-30vh)] border-stone-800  bg-[#1B1B1B] max-h-[calc(100vh-45vh)] mb-2 overflow-y-scroll">
                     <CardContent className="p-6 h-full overflow-y-auto">
                         {isLoading ? (
                             <div className='w-full h-full flex flex-col gap-y-2 items-center justify-center'>
@@ -155,7 +155,7 @@ export default function DatabaseVisualizer() {
                                 <AgentStatus />
                             </div>
                         ) : (
-                            <div className="w-full h-full bg-white rounded-lg flex items-center justify-center text-gray-400 overflow-x-scroll">
+                            <div className="w-full h-full bg-[#1B1B1B] rounded-lg flex items-center justify-center text-gray-300 overflow-auto">
                                 {response ? (
                                     // Check if response contains HTML tags
                                     response.includes('<') && response.includes('>') ? (
@@ -183,18 +183,18 @@ export default function DatabaseVisualizer() {
                 className="w-full max-w-3xl mt-4 mb-8 fixed bottom-0 transform rounded-lg "
 
             >
-                <Card className="shadow-md overflow-hidden">
+                <Card className="shadow-md overflow-hidden bg-[#1B1B1B]">
                     <CardContent className="flex flex-row p-4">
                         <Textarea
                             placeholder=" E.g. Explain this database"
-                            className="w-full bottom-0 min-h-[20px] max-h-10 mr-3 left-1/2 p-2 border border-gray-200 rounded-md"
+                            className="w-full text-white bottom-0 min-h-[20px] max-h-10 mr-3 left-1/2 p-2 border-none bg-[#1B1B1B] rounded-md"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                         />
                         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                             <Button
                                 onClick={handleRunQuery}
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-md flex items-center"
+                                className="bg-purple-600 hover:bg-purple-700 text-white px-4 rounded-md flex items-center"
                                 disabled={isLoading}
                             >
                                 <Send className="w-4 h-4 mr-2" />

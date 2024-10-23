@@ -95,9 +95,9 @@ const DatabaseConnection: React.FC<DatabaseConnectionProps> = () => {
                         damping: 35,
                         delay:1.5
                     }}
-                    className="flex flex-col items-center px-6 py-6 max-w-[500px] w-full min-h-fit bg-white rounded-[32px] shadow-[8px_8px_4px_rgba(0,0,0,0.25)]"
+                    className="flex flex-col items-center px-6 py-6 max-w-[500px] w-full min-h-fit bg-[#1B1B1B] rounded-[32px] shadow-[8px_8px_4px_rgba(0,0,0,0.25)]"
                 >
-                    <h1 className="self-center text-2xl font-semibold text-indigo-600">
+                    <h1 className="self-center text-2xl font-semibold text-purple-700">
                         Database Connection
                     </h1>
                     <p className="mt-2.5 text-xs">
@@ -119,7 +119,7 @@ const DatabaseConnection: React.FC<DatabaseConnectionProps> = () => {
                         <div className='flex justify-center'>
                             <button
                                 type="submit"
-                                className="self-center px-9 py-2 mt-7 w-full max-w-[200px] text-xl text-white whitespace-nowrap bg-indigo-600 rounded-2xl"
+                                className="self-center px-9 py-2 mt-7 w-full max-w-[200px] text-xl text-white whitespace-nowrap bg-purple-600 rounded-2xl"
                             >
                                 Connect
                             </button>

@@ -43,8 +43,8 @@ export default function EnhancedAnimatedBackground() {
                 {/* Background gradient */}
                 <defs>
                     <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style={{ stopColor: "#e0f2fe", stopOpacity: 1 }} />
-                        <stop offset="100%" style={{ stopColor: "#bfdbfe", stopOpacity: 1 }} />
+                        <stop offset="0%" style={{ stopColor: "#2e2e2e", stopOpacity: 1 }} />
+                        <stop offset="100%" style={{ stopColor: "#3d3d3d", stopOpacity: 1 }} />
                     </linearGradient>
                 </defs>
                 <motion.rect x="0" y="0" width="100%" height="100%" fill="url(#grad1)" variants={itemVariants} />
@@ -76,7 +76,7 @@ export default function EnhancedAnimatedBackground() {
                 {/* Animated paths */}
                 <motion.path
                     d="M0,300 Q250,50 500,300 T1000,300 L1000,0 L0,0 Z"
-                    fill="#5a97ed"
+                    fill="#1f1f1f"
                     variants={itemVariants}
                     animate={{
                         d: [
@@ -89,7 +89,7 @@ export default function EnhancedAnimatedBackground() {
                 />
                 <motion.path
                     d="M0,600 Q250,450 500,600 T1000,600 L1000,1000 L0,1000 Z"
-                    fill="#3b82f6"
+                    fill="#1a1919"
                     variants={itemVariants}
                     animate={{
                         d: [

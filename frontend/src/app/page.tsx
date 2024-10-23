@@ -21,15 +21,15 @@ export default function Component() {
   }, [])
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-blue400">
+    <div className="relative h-screen w-full overflow-hidden bg-ThemeBg">
       <motion.div
-        className="absolute inset-0 bg-blue-300"
+        className="absolute inset-0 bg-zinc-800"
         animate={{
           clipPath: `circle(${mousePosition.x * 0.1 + mousePosition.y * 0.1 + 200}px at ${mousePosition.x}px ${mousePosition.y}px)`,
         }}
         transition={{ type: 'spring', stiffness: 20, damping: 30 }}
       />
-      <div className="relative z-10 flex h-full flex-col items-center justify-center text-blue-500">
+      <div className="relative z-10 flex h-full flex-col items-center justify-center text-white">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -51,7 +51,7 @@ export default function Component() {
           databae.
         </motion.h1>
         <motion.p
-          className="mb-8 text-xl text-blue-500"
+          className="mb-8 text-xl text-circleColor"
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }}
@@ -59,7 +59,7 @@ export default function Component() {
           Simplify Databases.
         </motion.p>
         <motion.button
-          className="rounded-full bg-blue-600 px-8 py-3 text-lg font-semibold text-white shadow-lg transition-colors hover:bg-blue-50"
+          className="rounded-full bg-purple-600 hover:scale-110 px-8 py-3 text-lg font-semibold text-white shadow-lg transition-colors hover:bg-purple-950"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => router.push('/connection')}

@@ -13,8 +13,8 @@ const config: Config = {
   			background: 'var(--background)',
   			foreground: 'var(--foreground)',
   			WhiteBg: '#79aced',
-        ThemeBg: '#e0f2fe',
-        CircleColor: '#3b82f6'
+        ThemeBg: '#141414',
+        CircleColor: '#D6A3FE'
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
