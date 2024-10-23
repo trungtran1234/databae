@@ -1,10 +1,18 @@
-# Databae - Powered By SingleStore
-Databae is your personal AI assistant when it comes to being able to explore and analyze your SingleStore database with human language. Tell Databae what you want to query your SingleStore database in human language, and Databae will automatically query the database, analyze the dataset, and visualize the results for you to understand.
+# Databae - Cal Hacks 11.0
+
+## What is Databae?
+* Have you ever had to create an SQL query by hand? You're probably saying, "Do not make me do that!" Well, Databae comes to the rescue!
+* Databae is your personal AI assistant when it comes to exploring 
+the complexities of an SQL database. Tell Databae what you want to query
+your database in plain English, and Databae will automatically query the 
+database and visualize the results for you to understand.
 
 ## Diagram
-<img src="https://github.com/user-attachments/assets/cb7e0d4d-fae8-4bea-bcdf-f2a91b8f8bb5" width="500" title="Ray Romano saying What do you think?" alt="Ray Romano saying What do you think?"/>
+![Databae](https://github.com/user-attachments/assets/cb7e0d4d-fae8-4bea-bcdf-f2a91b8f8bb5)
+
 
 ## Instructions 
+
 ### Frontend 
 * Install [npm](https://nodejs.org/en)
 * Change directory into the folder ```frontend``` and run ```npm install``` to install all the dependencies
@@ -20,7 +28,7 @@ Databae is your personal AI assistant when it comes to being able to explore and
 could be python or python3. 
 
 ## Use Cases
-* Connect to any SingleStore database to visualize data
+* Connect to any MySQL database to visualize data
 * Generate a pie chart based off data in the database
 * Generate a table based off data in the database
 * Generate a plaintext response based off data in the database
